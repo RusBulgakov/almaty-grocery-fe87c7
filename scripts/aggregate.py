@@ -3,7 +3,7 @@ Each inbox/*.json is a snapshot from one rep for one district (schema checkin.v1
 Newest exported_at per district wins. Runs in GitHub Actions on push to inbox/**."""
 import json, glob, os, datetime
 
-TOTALS = {"district1": 389, "district2": 295, "district3": 318}
+TOTALS = {"district1": 372, "district2": 295, "district3": 318}
 NAMES = {"district1": "Район 1 · Розыбакиева–Байзакова",
          "district2": "Район 2 · Байзакова–Желтоксан",
          "district3": "Район 3 · Желтоксан–восток"}
