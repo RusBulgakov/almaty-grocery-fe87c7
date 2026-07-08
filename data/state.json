@@ -1,1 +1,75 @@
-{"updated_at":null,"districts":{}}
+{
+ "updated_at": "2026-07-08T12:07:42.729145+00:00",
+ "districts": {
+  "district1": {
+   "name": "Район 1 · Розыбакиева–Байзакова",
+   "total": 308,
+   "done": 0,
+   "rep": null,
+   "exported_at": null,
+   "by_day": {},
+   "gps_far": 0,
+   "gps_none": 0,
+   "visited": []
+  },
+  "district2": {
+   "name": "Район 2 · Байзакова–Желтоксан",
+   "total": 273,
+   "done": 3,
+   "rep": "Демо Торгпред",
+   "exported_at": 1751970000000,
+   "by_day": {
+    "1": 2,
+    "2": 1
+   },
+   "gps_far": 1,
+   "gps_none": 0,
+   "visited": [
+    {
+     "id": "1",
+     "name": "Магнит, мини-маркет",
+     "addr": "ул. Абая 1",
+     "day": 1,
+     "order": 1,
+     "t": 1751969000000,
+     "lat": 43.24,
+     "lon": 76.92,
+     "dist": 40
+    },
+    {
+     "id": "2",
+     "name": "Small, супермаркет",
+     "addr": "ул. Абая 2",
+     "day": 1,
+     "order": 2,
+     "t": 1751969500000,
+     "lat": 43.241,
+     "lon": 76.921,
+     "dist": 220
+    },
+    {
+     "id": "3",
+     "name": "Арзан, магазин",
+     "addr": "ул. Абая 3",
+     "day": 2,
+     "order": 1,
+     "t": 1751969900000,
+     "lat": 43.242,
+     "lon": 76.922,
+     "dist": 1500
+    }
+   ]
+  },
+  "district3": {
+   "name": "Район 3 · Желтоксан–восток",
+   "total": 250,
+   "done": 0,
+   "rep": null,
+   "exported_at": null,
+   "by_day": {},
+   "gps_far": 0,
+   "gps_none": 0,
+   "visited": []
+  }
+ }
+}
