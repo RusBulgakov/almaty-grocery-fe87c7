@@ -1,0 +1,83 @@
+<!doctype html><html lang="ru"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Дашборд обхода — руководитель</title>
+<style>
+  :root{--bg:#0f1216;--panel:#171b22;--ink:#e8ecf1;--mut:#96a0ad;--acc:#3ea6ff;--line:#242a33;--ok:#2ecc71}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,Segoe UI,Roboto,Arial,sans-serif;padding:16px;max-width:1100px;margin:0 auto}
+  h1{font-size:19px;margin:0 0 2px}
+  .sub{color:var(--mut);font-size:12.5px;margin-bottom:16px}
+  .sub b{color:var(--ink)}
+  .overall{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px 16px;margin-bottom:16px}
+  .overall .big{font-size:30px;font-weight:700}
+  .bar{height:10px;background:#0c0f13;border-radius:6px;overflow:hidden;margin-top:8px}
+  .bar i{display:block;height:100%;background:linear-gradient(90deg,#2ecc71,#27ae60)}
+  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px 16px}
+  .card h2{font-size:15px;margin:0 0 2px}
+  .card .rep{color:var(--mut);font-size:12px;margin-bottom:8px}
+  .card .pct{font-size:26px;font-weight:700}
+  .card .of{color:var(--mut);font-size:13px;font-weight:400}
+  .card .meta{color:var(--mut);font-size:11.5px;margin-top:8px;line-height:1.6}
+  .flag{display:inline-block;border-radius:10px;padding:1px 7px;font-size:11px;margin-left:5px}
+  .warn{background:#3a1a1a;color:#f87171}
+  .days{display:flex;gap:3px;margin-top:9px;flex-wrap:wrap}
+  .days .d{flex:1;min-width:26px;text-align:center;font-size:10px;color:var(--mut);background:#10141a;border:1px solid var(--line);border-radius:6px;padding:3px 0}
+  .days .d b{display:block;color:var(--ink);font-size:12px}
+  .days .d.full{border-color:#245a37;background:#10241a}
+  details{margin-top:10px}
+  summary{cursor:pointer;font-size:12.5px;color:var(--acc)}
+  table{width:100%;border-collapse:collapse;margin-top:8px;font-size:11.5px}
+  th,td{text-align:left;padding:5px 6px;border-bottom:1px solid #1c222b}
+  th{color:var(--mut);font-weight:600}
+  .gps-ok{color:#4ade80}.gps-mid{color:#fde047}.gps-far{color:#f87171}.gps-none{color:var(--mut)}
+  #err{color:#f87171;font-size:13px}
+  .rl{margin-top:14px;color:var(--mut);font-size:11.5px}
+  button{padding:7px 12px;border-radius:8px;border:1px solid var(--line);background:#10141a;color:var(--ink);cursor:pointer;font-size:12.5px}
+</style></head><body>
+<h1>Дашборд обхода магазинов</h1>
+<div class="sub">Продуктовые магазины Алматы · сводка по 3 торговым представителям · <button id="reload">Обновить</button></div>
+<div id="err"></div>
+<div class="overall" id="overall"></div>
+<div class="cards" id="cards"></div>
+<div class="rl">Данные обновляются, когда руководитель загружает файлы отчётов в папку <code>inbox/</code> репозитория (GitHub Action пересобирает сводку). Последнее обновление: <span id="upd">—</span>.</div>
+<script>
+function fmt(t){if(!t)return '—';const d=new Date(t);const p=n=>(n<10?'0':'')+n;
+  return p(d.getDate())+'.'+p(d.getMonth()+1)+' '+p(d.getHours())+':'+p(d.getMinutes());}
+function gcls(d){return d==null?'gps-none':d<=150?'gps-ok':d<=600?'gps-mid':'gps-far';}
+function gtxt(d){return d==null?'без GPS':(d<1000?d+' м':(d/1000).toFixed(1)+' км');}
+async function load(){
+  const err=document.getElementById('err');err.textContent='';
+  let st;
+  try{const r=await fetch('data/state.json?t='+Date.now());st=await r.json();}
+  catch(e){err.textContent='Не удалось загрузить data/state.json';return;}
+  const D=st.districts||{};
+  const keys=Object.keys(D).length?Object.keys(D):['district1','district2','district3'];
+  let done=0,total=0;
+  keys.forEach(k=>{done+=(D[k]&&D[k].done)||0;total+=(D[k]&&D[k].total)||0;});
+  const pct=total?Math.round(done/total*100):0;
+  document.getElementById('overall').innerHTML=
+    '<div>Всего пройдено: <span class="big">'+done+'</span> <span style="color:var(--mut)">из '+total+' ('+pct+'%)</span></div>'+
+    '<div class="bar"><i style="width:'+pct+'%"></i></div>';
+  document.getElementById('upd').textContent=st.updated_at?fmt(Date.parse(st.updated_at)):'ещё не было загрузок';
+  const cards=document.getElementById('cards');cards.innerHTML='';
+  keys.forEach(k=>{
+    const d=D[k]||{name:k,total:0,done:0,visited:[],by_day:{}};
+    const p=d.total?Math.round(d.done/d.total*100):0;
+    let days='';for(let i=1;i<=10;i++){const c=(d.by_day&&d.by_day[i])||0;days+='<div class="d'+(c>0?' full':'')+'">Д'+i+'<b>'+c+'</b></div>';}
+    let rows=(d.visited||[]).slice().sort((a,b)=>(b.t||0)-(a.t||0)).slice(0,200).map(v=>
+      '<tr><td>'+(v.name||'')+'</td><td>Д'+(v.day||'')+'</td><td>'+fmt(v.t)+'</td><td class="'+gcls(v.dist)+'">'+gtxt(v.dist)+'</td></tr>').join('');
+    cards.innerHTML+=
+      '<div class="card"><h2>'+(d.name||k)+'</h2>'+
+      '<div class="rep">Торгпред: '+(d.rep||'—')+' · синхронизация: '+fmt(d.exported_at)+'</div>'+
+      '<div><span class="pct">'+p+'%</span> <span class="of">'+d.done+' / '+d.total+'</span>'+
+      (d.gps_far?'<span class="flag warn">вне точки: '+d.gps_far+'</span>':'')+'</div>'+
+      '<div class="bar"><i style="width:'+p+'%"></i></div>'+
+      '<div class="days">'+days+'</div>'+
+      '<details><summary>Показать отметки ('+(d.visited||[]).length+')</summary>'+
+      '<table><tr><th>Магазин</th><th>День</th><th>Время</th><th>GPS</th></tr>'+rows+'</table></details></div>';
+  });
+}
+document.getElementById('reload').onclick=load;
+load();
+</script></body></html>
